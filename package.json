@@ -1,14 +1,25 @@
 {
   "name": "@qtk/schema-tcp-request-framework",
-  "version": "2.0.13",
+  "version": "2.1.0",
   "description": "tcp request framework based on schemaed json protocol",
   "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "semantic-schema": "^0.3.1",
+    "@qtk/schema-tcp-framework": "^1.0.9",
+    "uuid": "^3.2.1"
+  },
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  },
   "scripts": {
     "test": "mocha"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rayanywhere/qtk-schema-tcp-request-framework.git"
+    "url": "git+https://github.com/vanchu001/qtk-schema-tcp-request-framework.git"
   },
   "keywords": [
     "tcp",
@@ -19,13 +30,7 @@
   "author": "skip",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/rayanywhere/qtk-schema-tcp-request-framework/issues"
+    "url": "https://github.com/vanchu001/qtk-schema-tcp-request-framework/issues"
   },
-  "homepage": "https://github.com/rayanywhere/qtk-schema-tcp-request-framework#readme",
-  "dependencies": {
-    "@qtk/schema-tcp-framework": "^1.0.9",
-    "fs": "0.0.1-security",
-    "semantic-schema": "^0.1.14",
-    "uuid": "^3.2.1"
-  }
+  "homepage": "https://github.com/vanchu001/qtk-schema-tcp-request-framework#readme"
 }

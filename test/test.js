@@ -43,11 +43,4 @@ describe("#schema-tcp-request-framework", function() {
         const error = await client.send({command: 'echo', payload: 'response_invalid'}).then(() => false).catch(err => err);
         assert(error.name === 'ValidationError', 'should return error');
     });
-
-    it('should return timeout if command doesn`t exist', async function() {
-        const uuid = genuuid().replace(/-/g, '');
-        const client = new Client({port, schemaDir:`${__dirname}/schema`});
-        const error = await client.send({command: 'echo2', payload: 'hello', timeout: 2}).then(() => false).catch(err => err);
-        assert(error.message == 'request timeout', 'should return timeout');
-    });
 });

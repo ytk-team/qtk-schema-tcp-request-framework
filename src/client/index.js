@@ -1,10 +1,15 @@
-const Validator = require('../validator/client');
+const ValidatorContainer = require('../validator_container');
+const DefaultValidator = require('../validator/default');
 const Client = require('@qtk/schema-tcp-framework').Client;
 const genuuid = require('uuid/v4');
 
 module.exports = class {
-    constructor({host, port, schemaDir}) {
-        this._client = new Client({host, port, validator: new Validator(schemaDir)});
+    constructor({host, port, schemaDir, Validator = DefaultValidator}) {
+        this._client = new Client({
+            host, 
+            port, 
+            validator: new ValidatorContainer(schemaDir, ValidatorContainer.Type.CLIENT, Validator)
+        });
         this._pendings = new Map();
         this._now = 0;
         this._client.on("data", ({uuid, data:{success, payload}}) => {
@@ -33,7 +38,7 @@ module.exports = class {
         }, 1000);
     }
 
-    send({command, payload, timeout = 30}) {
+    send({command, payload, timeout = 30, clientId = ''}) {
         return new Promise((resolve, reject) => {
             const uuid = genuuid().replace(/-/g, '');
             this._pendings.set(uuid, {
@@ -41,7 +46,7 @@ module.exports = class {
                 failure: error => reject(error),
                 expireTime: this._now + timeout
             });
-            this._client.send({uuid, data:{command, payload}});
+            this._client.send({uuid, data:{command, payload, clientId}});
         });
     }
 

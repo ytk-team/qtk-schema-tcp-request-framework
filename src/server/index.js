@@ -1,18 +1,25 @@
 const Server = require('@qtk/schema-tcp-framework').Server;
-const Validator = require('../validator/server');
+const ValidatorContainer = require('../validator_container');
+const DefaultValidator = require('../validator/default');
 const ValidationError = require('../error/validation');
 const EventEmitter = require('events').EventEmitter;
 
 module.exports = class extends EventEmitter {
-    constructor({host, port, handlerDir, schemaDir}) {
+    constructor({host, port, handlerDir, schemaDir, Validator = DefaultValidator}) {
         super();
-        this._server = new Server({host, port, validator: new Validator(schemaDir)});
+        this._server = new Server({
+            host, 
+            port, 
+            validator: new ValidatorContainer(schemaDir, ValidatorContainer.Type.SERVER, Validator)
+        });
         this._handlerDir = handlerDir;
-        
-        this._server.on("data", async (socket, {uuid, data:{command, payload:request}}) => {
+        this.schemaDir = schemaDir;
+
+        this._server.on("data", async (socket, {uuid, data:{command, payload:request, clientId}}) => {
             let response = undefined;
             try {
-                response = await require(`${this._handlerDir}/${command}`)({request, socket});
+                const constant = require(`${this.schemaDir}/${command}`).constant;
+                response = await require(`${this._handlerDir}/${command}`)({request, socket, clientId, constant});
                 if (response === undefined) {
                     response = null;
                 }
