@@ -28,7 +28,7 @@ module.exports = class extends EventEmitter {
             catch(err) {
                 let error = err instanceof BusinessError ? {type: 'business', message: err.message, code: err.code} : {type: 'default', message: err.message};
                 this._server.send(socket, {uuid, data:{command, success: false, error}});
-                this.emit("exception", socket, err);
+                this.emit("exception", socket, error);
                 return;
             }
             this._server.send(socket, {uuid, data:{command, success: true, payload: response}});
