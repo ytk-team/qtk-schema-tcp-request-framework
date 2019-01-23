@@ -23,7 +23,7 @@ module.exports = class V extends BaseValidator {
                 this._validator.requestCheck({command, instance: payload, schema: request});
             }
             else if (this._type == V.Type.CLIENT) {
-                this._validator.responseCheck({command, instance: payload, schema: response})
+                if (success) this._validator.responseCheck({command, instance: payload, schema: response})
             }
             else {
                 throw new Error(`no support type ${this._type}`);

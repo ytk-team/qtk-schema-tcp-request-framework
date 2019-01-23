@@ -3,6 +3,7 @@ const ValidatorContainer = require('../validator_container');
 const DefaultValidator = require('../validator/default');
 const ValidationError = require('../error/validation');
 const EventEmitter = require('events').EventEmitter;
+const BusinessError = require('../error/business');
 
 module.exports = class extends EventEmitter {
     constructor({host, port, handlerDir, schemaDir, Validator = DefaultValidator}) {
@@ -25,7 +26,8 @@ module.exports = class extends EventEmitter {
                 }
             }
             catch(err) {
-                this._server.send(socket, {uuid, data:{command, success: false, payload: err.message}});
+                let error = err instanceof BusinessError ? {type: 'business', message: err.message, code: err.code} : {type: 'default', message: err.message};
+                this._server.send(socket, {uuid, data:{command, success: false, error}});
                 this.emit("exception", socket, err);
                 return;
             }
@@ -43,7 +45,7 @@ module.exports = class extends EventEmitter {
                     data:{
                         command: error.data.command, 
                         success: false, 
-                        payload: error.message
+                        error: {type: 'validation', message: error.message}
                     }
                 });
             }

@@ -2,6 +2,7 @@ const Server = require('../src/server');
 const Client = require('../src/client');
 const genuuid = require('uuid/v4');
 const assert = require('assert');
+const {BusinessError, ValidationError} = require('../');
 
 const port = 3005;
 let server = new Server({
@@ -41,6 +42,13 @@ describe("#schema-tcp-request-framework", function() {
         const uuid = genuuid().replace(/-/g, '');
         const client = new Client({port, schemaDir:`${__dirname}/schema`});
         const error = await client.send({command: 'echo', payload: 'response_invalid'}).then(() => false).catch(err => err);
-        assert(error.name === 'ValidationError', 'should return error');
+        assert(error instanceof ValidationError, 'should return validation error');
+    });
+
+    it('should return business error', async function() {
+        const uuid = genuuid().replace(/-/g, '');
+        const client = new Client({port, schemaDir:`${__dirname}/schema`});
+        const error = await client.send({command: 'echo', payload: 'business_error'}).then(() => false).catch(err => err);
+        assert(error instanceof BusinessError, 'should return business error');
     });
 });

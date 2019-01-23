@@ -2,6 +2,8 @@ const ValidatorContainer = require('../validator_container');
 const DefaultValidator = require('../validator/default');
 const Client = require('@qtk/schema-tcp-framework').Client;
 const genuuid = require('uuid/v4');
+const BusinessError = require('../error/business');
+const ValidationError = require('../error/validation');
 
 module.exports = class {
     constructor({host, port, schemaDir, Validator = DefaultValidator}) {
@@ -12,11 +14,23 @@ module.exports = class {
         });
         this._pendings = new Map();
         this._now = 0;
-        this._client.on("data", ({uuid, data:{success, payload}}) => {
+        this._client.on("data", ({uuid, data:{success, payload, error}}) => {
             const callback = this._pendings.get(uuid);
             if (callback !== undefined) {
                 this._pendings.delete(uuid);
-                success ? callback.success(payload) : callback.failure(new Error(payload));
+                if (success) {
+                    callback.success(payload);
+                }
+                else {
+                    switch (error.type) {
+                        case 'business':
+                            callback.failure(new BusinessError(error.code, error.message));
+                        case 'validator':
+                            callback.failure(new ValidationError(error.message));
+                        default:
+                            callback.failure(new Error(error.message));
+                    }
+                }  
             }
         });
         this._client.on("exception", (err) => {
