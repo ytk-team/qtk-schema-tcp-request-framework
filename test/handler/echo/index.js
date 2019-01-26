@@ -8,6 +8,6 @@ module.exports = async ({request, socket}) => {
         case 'response_invalid': 
             return {a: 123};
         case 'business_error':
-            throw new BusinessError(123, '服务器向你抛了个业务错');
+            throw new BusinessError('服务器向你抛了个业务错', 123);
     }
 };

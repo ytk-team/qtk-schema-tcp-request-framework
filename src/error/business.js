@@ -1,5 +1,5 @@
 module.exports = class BusinessError extends Error {
-    constructor(code, message) {
+    constructor(message, code) {
         super(message);
         this.code = code;
     }
