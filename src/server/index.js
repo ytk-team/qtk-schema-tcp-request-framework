@@ -26,9 +26,15 @@ module.exports = class extends EventEmitter {
                 }
             }
             catch(err) {
-                let error = err instanceof BusinessError ? {type: 'business', message: err.message, code: err.code} : {type: 'default', message: err.message};
-                this._server.send(socket, {uuid, data:{command, success: false, error}});
-                this.emit("exception", socket, error);
+                this._server.send(socket, {
+                    uuid, 
+                    data:{
+                        command, 
+                        success: false, 
+                        error: err instanceof BusinessError ? {type: 'business', message: err.message, code: err.code} : {type: 'default', message: err.message}
+                    }
+                });
+                this.emit("exception", socket, err);
                 return;
             }
             this._server.send(socket, {uuid, data:{command, success: true, payload: response}});
@@ -38,7 +44,7 @@ module.exports = class extends EventEmitter {
         this._server.on("stopped", () => {this.emit("stopped");});
         this._server.on("connected", (socket) => {this.emit("connected", socket);});
         this._server.on("closed", (socket) => {this.emit("closed", socket);});
-        this._server.on("exception", (socket, error) => {
+        this._server.on("exception", (socket, error) => { //schema校验出错或网络出错
             if (error instanceof ValidationError) {
                 this._server.send(socket, {
                     uuid: error.uuid, 

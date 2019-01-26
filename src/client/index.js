@@ -28,7 +28,7 @@ module.exports = class {
                         case 'validator':
                             callback.failure(new ValidationError(error.message));
                         default:
-                            callback.failure(new Error(error.message));
+                            callback.failure(error);
                     }
                 }  
             }
