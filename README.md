@@ -1,5 +1,5 @@
 # qtk-schema-tcp-request-framework
-一个基于TCP的请求框架，自带schema校验功能，并且可以自定义schema语法及数据校验器．
+一个基于TCP的同步请求框架，自带schema校验功能，并且可以自定义schema语法及数据校验器．
 
 ## 用法：
 
@@ -35,7 +35,7 @@ server.start();
 ### Schema:
 /schema/echo/index.js
 ```js
-const {string} = require('semantic-schema').schema;
+const {string} = require('@qtk/schema').schema;
 const request = string().desc("请求的内容");　//请求数据必须为字符串
 const response = string().desc("返回的内容");　//返回数据必须为字符串
 module.exports = {response, request};
@@ -55,7 +55,6 @@ const Client = require('@qtk/schema-tcp-request-framework').Client;
 const client = new Client({
     host: '127.0.0.1', //服务端ip
     port: 3000, //服务端端口
-    schemaDir:`${__dirname}/schema`　//schema文件目录
 });
 const response = await client.send({
     command: 'echo', //接口名
@@ -146,8 +145,6 @@ const Client = require('@qtk/schema-tcp-request-framework').Client;
 const client = new Client({
     host: '127.0.0.1', //服务端ip
     port: 3000, //服务端端口
-    schemaDir:`${__dirname}/schema`,　//schema文件目录
-    Validator: `${__dirname}/ajv_validator.js` //自定义数据校验器
 });
 const response = await client.send({
     command: 'echo', //接口名
@@ -155,3 +152,6 @@ const response = await client.send({
 });
 console.log(response); //输出hello
 ```
+
+### 备注
+1. 从2.3.0版本起，schema校验由谁收到数据谁校验方式改为全部为server端校验，避免client端还要携带schema产生的依赖问题

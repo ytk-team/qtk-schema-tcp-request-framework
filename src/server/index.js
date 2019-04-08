@@ -11,7 +11,7 @@ module.exports = class extends EventEmitter {
         this._server = new Server({
             host, 
             port, 
-            validator: new ValidatorContainer(schemaDir, ValidatorContainer.Type.SERVER, Validator)
+            validator: new ValidatorContainer(schemaDir, Validator)
         });
         this._handlerDir = handlerDir;
         this.schemaDir = schemaDir;
@@ -21,30 +21,39 @@ module.exports = class extends EventEmitter {
             try {
                 const constant = require(`${this.schemaDir}/${command}`).constant;
                 response = await require(`${this._handlerDir}/${command}`)({request, socket, clientId, constant});
-                if (response === undefined) {
-                    response = null;
-                }
+                if (response === undefined) response = null;
+                this._server.send(socket, {uuid, data:{command, success: true, payload: response}});
             }
             catch(err) {
+                let error = undefined;
+                if (err instanceof BusinessError) {
+                    error = {type: 'business', message: err.message, code: err.code};
+                }
+                else if (err instanceof ValidationError) { //response schema校验出错
+                    error = {type: 'validation', message: err.message};
+                    this.emit("exception", socket, err);
+                }
+                else {
+                    error = {type: 'default', message: err.message};
+                    this.emit("exception", socket, err);
+                }
                 this._server.send(socket, {
                     uuid, 
                     data:{
                         command, 
                         success: false, 
-                        error: err instanceof BusinessError ? {type: 'business', message: err.message, code: err.code} : {type: 'default', message: err.message}
+                        error
                     }
                 });
-                this.emit("exception", socket, err);
-                return;
             }
-            this._server.send(socket, {uuid, data:{command, success: true, payload: response}});
+            
         });
 
         this._server.on("started", () => {this.emit("started");});
         this._server.on("stopped", () => {this.emit("stopped");});
         this._server.on("connected", (socket) => {this.emit("connected", socket);});
         this._server.on("closed", (socket) => {this.emit("closed", socket);});
-        this._server.on("exception", (socket, error) => { //schema校验出错或网络出错
+        this._server.on("exception", (socket, error) => { //request schema校验出错或网络出错
             if (error instanceof ValidationError) {
                 this._server.send(socket, {
                     uuid: error.uuid, 

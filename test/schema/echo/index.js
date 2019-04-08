@@ -1,4 +1,4 @@
-const {string} = require('semantic-schema').schema;
+const {string} = require('@qtk/schema').schema;
 
 const request = string().desc("请求的内容");
 

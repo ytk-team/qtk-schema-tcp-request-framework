@@ -1,16 +1,13 @@
-const ValidatorContainer = require('../validator_container');
-const DefaultValidator = require('../validator/default');
 const Client = require('@qtk/schema-tcp-framework').Client;
 const genuuid = require('uuid/v4');
 const BusinessError = require('../error/business');
 const ValidationError = require('../error/validation');
 
 module.exports = class {
-    constructor({host, port, schemaDir, Validator = DefaultValidator}) {
+    constructor({host, port}) {
         this._client = new Client({
             host, 
-            port, 
-            validator: new ValidatorContainer(schemaDir, ValidatorContainer.Type.CLIENT, Validator)
+            port
         });
         this._pendings = new Map();
         this._now = 0;
@@ -25,7 +22,7 @@ module.exports = class {
                     switch (error.type) {
                         case 'business':
                             callback.failure(new BusinessError(error.message, error.code));
-                        case 'validator':
+                        case 'validation':
                             callback.failure(new ValidationError(error.message));
                         default:
                             callback.failure(error);

@@ -1,5 +1,5 @@
 const BaseValidator = require('./index.js');
-const {validator: Validator} = require('semantic-schema');
+const {validator: Validator} = require('@qtk/schema');
 
 module.exports = class SemanticValidator extends BaseValidator {
     requestCheck({command, instance, schema}) {
