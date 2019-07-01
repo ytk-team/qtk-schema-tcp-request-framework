@@ -23,9 +23,9 @@ module.exports = class {
                         case 'business':
                             callback.failure(new BusinessError(error.message, error.code));
                         case 'validation':
-                            callback.failure(new ValidationError(error.message));
+                            callback.failure(new ValidationError(error.message, error));
                         default:
-                            callback.failure(error);
+                            callback.failure(new Error(error.message));
                     }
                 }  
             }

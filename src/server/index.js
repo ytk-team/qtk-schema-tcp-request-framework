@@ -8,19 +8,26 @@ const BusinessError = require('../error/business');
 module.exports = class extends EventEmitter {
     constructor({host, port, handlerDir, schemaDir, Validator = DefaultValidator}) {
         super();
+        this._validator = new ValidatorContainer(schemaDir, Validator)
         this._server = new Server({
             host, 
             port, 
-            validator: new ValidatorContainer(schemaDir, Validator)
+            validator: this._validator
         });
         this._handlerDir = handlerDir;
         this.schemaDir = schemaDir;
+        this._handlerCache = new Map();
 
         this._server.on("data", async (socket, {uuid, data:{command, payload:request, clientId}}) => {
             let response = undefined;
             try {
-                const constant = require(`${this.schemaDir}/${command}`).constant;
-                response = await require(`${this._handlerDir}/${command}`)({request, socket, clientId, constant});
+                let commandSchema = this._validator.getSchema(command);
+                let handler = this._handlerCache.get(`${this._handlerDir}/${command}`);
+                if (handler === undefined) {
+                    handler = require(`${this._handlerDir}/${command}`);
+                    this._handlerCache.set(`${this._handlerDir}/${command}`, handler);
+                }
+                response = await handler({request, socket, clientId, constant: commandSchema.constant});
                 if (response === undefined) response = null;
                 this._server.send(socket, {uuid, data:{command, success: true, payload: response}});
             }
@@ -30,7 +37,7 @@ module.exports = class extends EventEmitter {
                     error = {type: 'business', message: err.message, code: err.code};
                 }
                 else if (err instanceof ValidationError) { //response schema校验出错
-                    error = {type: 'validation', message: err.message};
+                    error = {type: 'validation', message: err.message, side: err.side, command: err.command};
                     this.emit("exception", socket, err);
                 }
                 else {
@@ -58,9 +65,9 @@ module.exports = class extends EventEmitter {
                 this._server.send(socket, {
                     uuid: error.uuid, 
                     data:{
-                        command: error.data.command, 
+                        command: error.command, 
                         success: false, 
-                        error: {type: 'validation', message: error.message}
+                        error: {type: 'validation', message: error.message, side: error.side, command: error.command}
                     }
                 });
             }

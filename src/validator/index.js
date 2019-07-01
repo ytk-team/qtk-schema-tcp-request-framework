@@ -1,9 +1,9 @@
 module.exports = class Validator {
-    requestCheck({instance, schema}) {
+    requestCheck({command, instance, schema}) {
         throw new Error(`this method should be implemented by subclasses`);
     }
 
-    responseCheck({instance, schema}) {
+    responseCheck({command, instance, schema}) {
         throw new Error(`this method should be implemented by subclasses`);
     }
 }
